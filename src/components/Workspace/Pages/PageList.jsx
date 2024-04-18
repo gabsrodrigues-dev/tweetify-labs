@@ -131,9 +131,9 @@ const PageList = ({
             </div>
             <div className="flex flex-col gap-y-5 justify-center items-center">
               <PostObject
+                isDownloadingTime={isDownloadingTime}
                 index={index}
                 postInfos={postInfos}
-                isDownloadingTime={isDownloadingTime}
               />
               <AddNewButton
                 icon={<HiArrowDownTray className="text-base" />}

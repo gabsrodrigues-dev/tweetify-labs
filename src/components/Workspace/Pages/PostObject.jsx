@@ -1,11 +1,11 @@
 export default function PostObject({ postInfos, index, isDownloadingTime }) {
   return (
-    <>
+    <div className="flex relative w-full h-full items-center justify-center">
       <div
         key={index}
         id={`tweet-${index}`}
-        className={`hidden-1-shadow w-[400px] h-[400px] flex flex-col p-10 gap-y-4 ${
-          isDownloadingTime ? "scale-[4] absolute -top-10 -right-10" : "rounded-[3rem]"
+        className={`flex flex-col hidden-1-shadow w-[400px] h-[400px] p-10 gap-y-4 ${
+          typeof isDownloadingTime !== "undefined" ? "" : "rounded-[3rem]"
         }`}
         style={{
           backgroundColor: postInfos.general_theme.mainColor,
@@ -52,16 +52,11 @@ export default function PostObject({ postInfos, index, isDownloadingTime }) {
           {postInfos.pagesContent[index].title}
         </p>
       </div>
-      {isDownloadingTime && (
-        <div
-          key={`hidden-${index}`}
-          id={`hidden-${index}`}
-          className={`w-[400px] h-[400px] flex p-10 justify-center items-center rounded-[3rem]`}
-          style={{
-            backgroundColor: postInfos.general_theme.mainColor,
-          }}
-        />
-      )}
-    </>
+        {typeof isDownloadingTime !== "undefined" ? (
+          <div className="flex justify-center items-center w-full h-full gap-x-10 absolute top-0 left-0 bg-yellow-700">
+            <p>Baixando...</p>
+          </div>
+        ) : null}
+    </div>
   );
 }

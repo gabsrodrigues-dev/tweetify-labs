@@ -15,7 +15,7 @@ import PageList from "../../components/Workspace/Pages/PageList";
 import html2canvas from "html2canvas";
 
 export default function WorkspacePage() {
-  const [isDownloadingTime, setIsDownloadingTime] = useState(false);
+  const [isDownloadingTime, setIsDownloadingTime] = useState(undefined);
   const themeOptions = [
     {
       name: "Azul Marinho",
@@ -79,7 +79,7 @@ export default function WorkspacePage() {
   });
 
   useEffect(() => {
-    window.scrollTo(0,0)
+    window.scrollTo(0, 0);
     setAvailableModels([
       {
         id: 1,
@@ -240,35 +240,48 @@ export default function WorkspacePage() {
         (page) => page.id !== pageIdToRemove
       ),
     }));
-  }
+  };
 
   const handleDownloadImage = (pageIndex) => {
-    setIsDownloadingTime(true);
+    setIsDownloadingTime(pageIndex);
     setTimeout(() => {
       try {
-      const div = document.getElementById(`tweet-${pageIndex}`);
-
-      html2canvas(div).then((canvas) => {
-        const dataURL = canvas.toDataURL("image/png");
-        const link = document.createElement("a");
-        link.href = dataURL;
-        link.download = `tweet-${pageIndex}.png`;
-        link.click();
-        link.remove();
-        canvas.remove();
-        Toastify("Imagem baixada com sucesso!", "success");
-      });
-    } catch (error) {
-      Toastify("Ocorreu um erro ao baixar a imagem!", "error");
-    } finally {
-      // setIsDownloadingTime(false);
-    }
+        html2canvas(document.getElementById(`tweet-${pageIndex}`), {
+          scale: 4.8,
+        })
+          .then((canvas) => {
+            const ctx = canvas.getContext("2d");
+            const imageData = ctx.getImageData(
+              0,
+              0,
+              canvas.width,
+              canvas.height
+            );
+            const newCanvas = document.createElement("canvas");
+            newCanvas.width = 1920;
+            newCanvas.height = 1920;
+            const newCtx = newCanvas.getContext("2d");
+            newCtx.putImageData(imageData, 0, 0);
+            let a = document.createElement("a");
+            a.href = newCanvas.toDataURL("image/png");
+            a.download = "tweet.png";
+            a.click();
+          })
+          .catch((err) => {
+            Toastify("Ocorreu um erro ao tentar baixar a imagem.", "error");
+          });
+      } catch (err) {
+        Toastify(
+          "Ocorreu um erro ao envolver com operações de imagem.", "error"
+        );
+      } finally {
+        setIsDownloadingTime(undefined);
+      }
     }, 1000);
   };
 
-
   return (
-    <main className="min-h-screen max-w-[100vw] overflow-x-hidden bg-[#212121]">
+    <main className="min-h-screen max-w-screen overflow-x-hidden bg-[#212121]">
       <MainHeader
         headerType="workspace"
         contentTopMargin={76}
