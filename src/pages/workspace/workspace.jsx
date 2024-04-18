@@ -12,6 +12,7 @@ import GeneralTextArea from "../../components/Inputs/GeneralTextArea";
 import ImageUploadInput from "../../components/Inputs/ImageUploadInput";
 import { HiMiniXMark } from "react-icons/hi2";
 import PageList from "../../components/Workspace/Pages/PageList";
+import html2canvas from "html2canvas";
 
 export default function WorkspacePage() {
   const themeOptions = [
@@ -77,6 +78,7 @@ export default function WorkspacePage() {
   });
 
   useEffect(() => {
+    window.scrollTo(0,0)
     setAvailableModels([
       {
         id: 1,
@@ -239,6 +241,25 @@ export default function WorkspacePage() {
     }));
   }
 
+  const handleDownloadImage = (pageIndex) => {
+    html2canvas(document.getElementById(`tweet-${pageIndex}`), {
+      scale: 4.8,
+    }).then((canvas) => {
+      const ctx = canvas.getContext("2d");
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const newCanvas = document.createElement("canvas");
+      newCanvas.width = 1920;
+      newCanvas.height = 1920;
+      const newCtx = newCanvas.getContext("2d");
+      newCtx.putImageData(imageData, 0, 0);
+      let a = document.createElement("a");
+      a.href = newCanvas.toDataURL("image/png");
+      a.download = "tweet.png";
+      a.click();
+    });
+  };
+
+
   return (
     <main className="min-h-screen max-w-screen overflow-x-hidden bg-[#212121]">
       <MainHeader
@@ -351,6 +372,7 @@ export default function WorkspacePage() {
                 setPostInfos={setPostInfos}
                 handlePostImagesChange={handlePostImagesChange}
                 handleRemovePostImage={handleRemovePostImage}
+                handleDownloadImage={handleDownloadImage}
               />
               <div className="flex justify-center items-center w-full gap-x-10">
                 {postInfos.pagesContent.length > 1 && (

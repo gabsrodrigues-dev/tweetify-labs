@@ -1,6 +1,8 @@
 export default function PostObject({ postInfos, index }) {
   return (
     <div
+      key={index}
+      id={`tweet-${index}`}
       className="hidden-1-shadow rounded-[3rem] w-[400px] h-[400px] flex flex-col p-10 gap-y-4"
       style={{
         backgroundColor: postInfos.general_theme.mainColor,

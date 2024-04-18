@@ -13,6 +13,7 @@ const PageList = ({
   setPostInfos,
   handlePostImagesChange,
   handleRemovePostImage,
+  handleDownloadImage,
 }) => {
   return (
     <div className="flex flex-col gap-y-5">
@@ -132,7 +133,7 @@ const PageList = ({
               <PostObject index={index} postInfos={postInfos} />
               <AddNewButton
                 icon={<HiArrowDownTray className="text-base" />}
-                onClick={() => console.log("baixou :D")}
+                onClick={() => handleDownloadImage(index)}
                 text="Download"
               />
             </div>
