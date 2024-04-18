@@ -14,6 +14,7 @@ const PageList = ({
   handlePostImagesChange,
   handleRemovePostImage,
   handleDownloadImage,
+  isDownloadingTime
 }) => {
   return (
     <div className="flex flex-col gap-y-5">
@@ -21,7 +22,6 @@ const PageList = ({
         <div key={index} className="flex flex-col gap-y-10">
           <div className="grid grid-cols-[2fr_1.5fr] gap-x-5">
             <div className="w-full flex flex-col gap-y-5">
-              {/* Condicionais e lógicas de renderização para cada tipo de página */}
               <div className="w-full flex flex-col gap-y-1">
                 <p>Tipo de tweet</p>
                 <MainSelect
@@ -130,7 +130,11 @@ const PageList = ({
               )}
             </div>
             <div className="flex flex-col gap-y-5 justify-center items-center">
-              <PostObject index={index} postInfos={postInfos} />
+              <PostObject
+                index={index}
+                postInfos={postInfos}
+                isDownloadingTime={isDownloadingTime}
+              />
               <AddNewButton
                 icon={<HiArrowDownTray className="text-base" />}
                 onClick={() => handleDownloadImage(index)}
