@@ -46,7 +46,7 @@ function TitleAndSubtitle({ title }) {
         <meta property="og:type" content="website" />
         <meta
           property="og:site_name"
-          content={`${process.env.REACT_APP_COLLEGE_NAME}`}
+          content="Tweetify Labs"
         />
         <meta property="og:locale" content="pt_BR" />
         <meta

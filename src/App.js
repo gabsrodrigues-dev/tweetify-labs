@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import HomePage from "./pages/home/home";
 import { ToastContainer } from "react-toastify";
 import TitleAndSubtitle from "./components/TitleAndSubtitle/TitleAndSubtitle";
+import WorkspacePage from "./pages/workspace/workspace";
 
 function App() {
   return (
@@ -11,6 +12,7 @@ function App() {
       <Router>
         <Routes>
           <Route path="/" element={<> <TitleAndSubtitle title="Início" /> <HomePage /> </>} />
+          <Route path="/workspace" element={<> <TitleAndSubtitle title="Workspace" /> <WorkspacePage /> </>} />
           {/* <Route
             path="/dashboard"
             element={
