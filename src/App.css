@@ -3,6 +3,10 @@ body {
   color: white;
 }
 
+b {
+  font-weight: 600 !important;
+}
+
 /* Initial CSS - Start */
 input,
 button, textarea,select,option {

@@ -12,7 +12,7 @@ import GeneralTextArea from "../../components/Inputs/GeneralTextArea";
 import ImageUploadInput from "../../components/Inputs/ImageUploadInput";
 import { HiMiniXMark } from "react-icons/hi2";
 import PageList from "../../components/Workspace/Pages/PageList";
-import html2canvas from "html2canvas";
+import domtoimage from "dom-to-image";
 
 export default function WorkspacePage() {
   const [isDownloadingTime, setIsDownloadingTime] = useState(undefined);
@@ -41,7 +41,7 @@ export default function WorkspacePage() {
   ];
   const fontNames = ["Arial", "Poppins", "Times New Roman", "Verdana"];
   const fontSizes_username = Array.from({ length: 6 }, (_, i) => i * 2 + 12);
-  const fontSizes_text = Array.from({ length: 6 }, (_, i) => i * 2 + 18);
+  const fontSizes_text = Array.from({ length: 6 }, (_, i) => i * 2 + 14);
   const fontSizes_title = Array.from({ length: 6 }, (_, i) => i * 2 + 24);
   const tweetsType = [
     { label: "Título", value: "just-title" },
@@ -76,6 +76,12 @@ export default function WorkspacePage() {
     general_text_fontSize: 26,
     general_username_fontSize: 20,
     general_theme: themeOptions[0],
+    general_imageWidth: 4,
+    general_imageHeight: 5,
+    showPageNavigation: true,
+    showReactions: false,
+    showTimestamp: false,
+    showVerifiedBadge: false,
   });
 
   useEffect(() => {
@@ -92,6 +98,21 @@ export default function WorkspacePage() {
         select: true,
       },
     ]);
+
+    // Tentar carregar estado salvo automaticamente
+    try {
+      const savedState = localStorage.getItem('tweetify_saved_state');
+      if (savedState) {
+        const parsedState = JSON.parse(savedState);
+        // Verificar se o estado tem a estrutura esperada
+        if (parsedState.postInfos && parsedState.availableModels) {
+          setPostInfos(parsedState.postInfos);
+          setAvailableModels(parsedState.availableModels);
+        }
+      }
+    } catch (error) {
+      console.log('Não foi possível carregar estado salvo:', error);
+    }
   }, []);
 
   const handleChangeModelName = (e) => {
@@ -128,6 +149,59 @@ export default function WorkspacePage() {
     setPostInfos((prevInfos) => ({
       ...prevInfos,
       general_username_fontSize: selectedOption.value,
+    }));
+  };
+
+  const handleImageWidthChange = (e) => {
+    const { value } = e.target;
+    setPostInfos((prevInfos) => ({
+      ...prevInfos,
+      general_imageWidth: parseInt(value) || 4,
+    }));
+  };
+
+  const handleImageHeightChange = (e) => {
+    const { value } = e.target;
+    setPostInfos((prevInfos) => ({
+      ...prevInfos,
+      general_imageHeight: parseInt(value) || 5,
+    }));
+  };
+
+  const handleSaveState = () => {
+    try {
+      const stateToSave = {
+        postInfos,
+        availableModels,
+        timestamp: new Date().toISOString(),
+      };
+      localStorage.setItem('tweetify_saved_state', JSON.stringify(stateToSave));
+      Toastify("Estado salvo com sucesso!", "success");
+    } catch (error) {
+      Toastify("Erro ao salvar estado.", "error");
+    }
+  };
+
+  const handleLoadState = () => {
+    try {
+      const savedState = localStorage.getItem('tweetify_saved_state');
+      if (savedState) {
+        const parsedState = JSON.parse(savedState);
+        setPostInfos(parsedState.postInfos);
+        setAvailableModels(parsedState.availableModels);
+        Toastify("Estado carregado com sucesso!", "success");
+      } else {
+        Toastify("Nenhum estado salvo encontrado.", "warning");
+      }
+    } catch (error) {
+      Toastify("Erro ao carregar estado.", "error");
+    }
+  };
+
+  const handleToggleFeature = (feature) => {
+    setPostInfos((prevInfos) => ({
+      ...prevInfos,
+      [feature]: !prevInfos[feature],
     }));
   };
 
@@ -170,7 +244,7 @@ export default function WorkspacePage() {
     reader.readAsDataURL(file);
   };
 
-  const handlePostImagesChange = (e) => {
+  const handlePostImagesChange = (e, pageIndex) => {
     const file = e.target.files[0];
     if (!file) {
       return;
@@ -179,14 +253,14 @@ export default function WorkspacePage() {
     reader.onloadend = () => {
       setPostInfos((prevInfos) => ({
         ...prevInfos,
-        pagesContent: prevInfos.pagesContent.map((page) =>
-          page.id === 0
+        pagesContent: prevInfos.pagesContent.map((page, idx) =>
+          idx === pageIndex
             ? {
                 ...page,
                 images: [
                   ...page.images,
                   {
-                    id: page.images.length,
+                    id: Date.now() + Math.random(),
                     base64Content: reader.result,
                   },
                 ],
@@ -199,11 +273,11 @@ export default function WorkspacePage() {
     reader.readAsDataURL(file);
   };
 
-  const handleRemovePostImage = (imageIdToRemove) => {
+  const handleRemovePostImage = (pageIndex, imageIdToRemove) => {
     setPostInfos((prevInfos) => ({
       ...prevInfos,
-      pagesContent: prevInfos.pagesContent.map((page, pageIndex) => {
-        if (page.id === 0) {
+      pagesContent: prevInfos.pagesContent.map((page, idx) => {
+        if (idx === pageIndex) {
           return {
             ...page,
             images: page.images.filter((image) => image.id !== imageIdToRemove),
@@ -242,42 +316,43 @@ export default function WorkspacePage() {
     }));
   };
 
-  const handleDownloadImage = (pageIndex) => {
+  const handleDownloadImage = async (pageIndex) => {
     setIsDownloadingTime(pageIndex);
-    setTimeout(() => {
-      try {
-        html2canvas(document.getElementById(`tweet-${pageIndex}`), {
-          scale: 4.8,
-        })
-          .then((canvas) => {
-            const ctx = canvas.getContext("2d");
-            const imageData = ctx.getImageData(
-              0,
-              0,
-              canvas.width,
-              canvas.height
-            );
-            const newCanvas = document.createElement("canvas");
-            newCanvas.width = 1920;
-            newCanvas.height = 1920;
-            const newCtx = newCanvas.getContext("2d");
-            newCtx.putImageData(imageData, 0, 0);
-            let a = document.createElement("a");
-            a.href = newCanvas.toDataURL("image/png");
-            a.download = "tweet.png";
-            a.click();
-          })
-          .catch((err) => {
-            Toastify("Ocorreu um erro ao tentar baixar a imagem.", "error");
-          });
-      } catch (err) {
-        Toastify(
-          "Ocorreu um erro ao envolver com operações de imagem.", "error"
-        );
-      } finally {
-        setIsDownloadingTime(undefined);
+    
+    try {
+      const element = document.getElementById(`tweet-${pageIndex}`);
+      if (!element) {
+        throw new Error("Elemento não encontrado");
       }
-    }, 1000);
+
+      // Aguardar um pouco para garantir que a interface seja atualizada
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      const dataUrl = await domtoimage.toPng(element, {
+        width: element.offsetWidth * 4,
+        height: element.offsetHeight * 4,
+        style: {
+          transform: 'scale(4)',
+          transformOrigin: 'top left',
+          width: element.offsetWidth + 'px',
+          height: element.offsetHeight + 'px',
+        },
+        quality: 1,
+        cacheBust: true,
+      });
+
+      const link = document.createElement('a');
+      link.download = `tweet-${pageIndex + 1}.png`;
+      link.href = dataUrl;
+      link.click();
+      
+      Toastify("Imagem baixada com sucesso!", "success");
+    } catch (error) {
+      console.error('Erro ao gerar imagem:', error);
+      Toastify("Ocorreu um erro ao tentar baixar a imagem.", "error");
+    } finally {
+      setIsDownloadingTime(undefined);
+    }
   };
 
   return (
@@ -376,6 +451,11 @@ export default function WorkspacePage() {
                 handleTextFontSizeChange={handleTextFontSizeChange}
                 handleUsernameFontSizeChange={handleUsernameFontSizeChange}
                 handleImageChange={handleImageChange}
+                handleImageWidthChange={handleImageWidthChange}
+                handleImageHeightChange={handleImageHeightChange}
+                handleSaveState={handleSaveState}
+                handleLoadState={handleLoadState}
+                handleToggleFeature={handleToggleFeature}
                 fontNames={fontNames}
                 fontSizes_title={fontSizes_title}
                 fontSizes_username={fontSizes_username}
